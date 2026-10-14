@@ -33,13 +33,15 @@ same environments for its own users, on whichever cloud a customer required.
 flowchart LR
     U[User / product UI] -->|request| API[Platform API]
     T[Internal teams' tools] -->|DNS · storage · proxy calls| GW[API gateway]
-    API -->|lifecycle message| MQ[(RabbitMQ<br/>quorum queues)]
+    API -->|lifecycle message<br/>product queue · admin queue| MQ[(RabbitMQ<br/>quorum queues)]
     MQ --> W[Provisioning workers<br/>Python]
     W -->|provider interface| AWS[AWS EC2]
     W -->|provider interface| AZ[Azure VMs]
     W -->|A record| R53[Route 53]
     W -->|playbooks| ANS[Ansible]
     ANS -->|installs| VM[VM: nginx + TLS + auth<br/>PM2 services · metrics agent]
+    VM -->|tool installed / stopped| ST[Service-status API<br/>FastAPI]
+    ST -->|status message| MQ
     W -->|ack / status| MQ
     MQ -->|status| API
     VM -->|CPU · RAM · disk| MON[Metrics over MQTT]
